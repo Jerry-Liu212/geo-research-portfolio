@@ -1,0 +1,7 @@
+path,status,is_html,title,description,h1_count,canonical,missing_alt,redirect,error,issues
+/,200,True,Programs,Find programs,1,,0,,,
+/a,200,True,Degree,,1,/a,1,,,missing_description;duplicate_title;missing_alt_attribute
+/b,200,True,Degree,,1,,0,,,missing_description;duplicate_title
+/dynamic,200,True,Dynamic,,0,,0,,,missing_description;missing_static_h1
+/missing,404,False,,,0,,0,,,http_error
+/old,301,False,,,0,,0,/a,,redirect

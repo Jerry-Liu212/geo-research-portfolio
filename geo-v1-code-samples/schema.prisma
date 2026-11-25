@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Detection {
+  id              String       @id @default(cuid())
+  projectId       String?
+  project         Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  runId           String?
+  run             AnalysisRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+  brandName       String
+  question        String
+  provider        String
+  model           String
+  answerText      String
+  mentioned       Boolean
+  occurrenceCount Int
+  firstPosition   Int?
+  createdAt       DateTime     @default(now())
+
+  @@index([projectId])
+  @@index([runId])
+  @@index([brandName])
+  @@index([createdAt])
+}
+
+model Project {
+  id               String        @id @default(cuid())
+  name             String
+  clientName       String
+  brandName        String
+  competitorNames  String
+  websiteUrl       String?
+  brandDescription String?
+  provider         String
+  model            String
+  detections       Detection[]
+  analysisRuns     AnalysisRun[]
+  reportVersions   ReportVersion[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([clientName])
+  @@index([brandName])
+  @@index([createdAt])
+}
+
+model AnalysisRun {
+  id                   String      @id @default(cuid())
+  projectId            String?
+  project              Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  kind                 String
+  status               String      @default("running")
+  templateId           String?
+  templateName         String?
+  templateCategory     String?
+  primaryBrandName     String
+  brandNames           String
+  questions            String
+  provider             String?
+  model                String?
+  providerConfigs      String?
+  plannedQuestionCount Int
+  plannedResultCount   Int
+  completedResultCount Int         @default(0)
+  failedQuestionCount  Int         @default(0)
+  mentionedResultCount Int         @default(0)
+  mentionRate          Float?
+  errorMessage         String?
+  detections           Detection[]
+  batchReports         ReportVersion[] @relation("BatchRunReports")
+  comparisonReports    ReportVersion[] @relation("ComparisonRunReports")
+  startedAt            DateTime    @default(now())
+  completedAt          DateTime?
+  updatedAt            DateTime    @updatedAt
+
+  @@index([projectId])
+  @@index([kind])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model ReportVersion {
+  id               String       @id @default(cuid())
+  projectId        String
+  project          Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  batchRunId       String
+  batchRun         AnalysisRun  @relation("BatchRunReports", fields: [batchRunId], references: [id], onDelete: Restrict)
+  comparisonRunId  String?
+  comparisonRun    AnalysisRun? @relation("ComparisonRunReports", fields: [comparisonRunId], references: [id], onDelete: Restrict)
+  version          Int
+  title            String
+  brandName        String
+  templateName     String
+  reportData       String
+  generatedAt      DateTime
+  createdAt        DateTime     @default(now())
+
+  @@unique([projectId, version])
+  @@index([projectId])
+  @@index([batchRunId])
+  @@index([comparisonRunId])
+  @@index([createdAt])
+}
